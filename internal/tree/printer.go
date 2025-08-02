@@ -80,31 +80,67 @@ func printTree(currentPath, prefix string, isRoot bool) error {
 	return nil
 }
 
+// Initialize skip sets as package-level variables for better performance
+var (
+	skipSet = map[string]bool{
+		".git":          true,
+		".github":       true,
+		".vscode":       true,
+		".idea":         true,
+		"node_modules":  true,
+		".DS_Store":     true,
+		"Thumbs.db":     true,
+		".env":          true,
+		".env.local":    true,
+		"vendor":        true,
+		"target":        true,
+		"build":         true,
+		"dist":          true,
+		"__pycache__":   true,
+		".pytest_cache": true,
+		".coverage":     true,
+		"coverage":      true,
+		".nyc_output":   true,
+	}
+
+	allowedDotFilesSet = map[string]bool{
+		".gitignore":       true,
+		".gitkeep":         true,
+		".dockerignore":    true,
+		".editorconfig":    true,
+		".eslintrc":        true,
+		".eslintrc.js":     true,
+		".eslintrc.json":   true,
+		".prettierrc":      true,
+		".prettierrc.js":   true,
+		".prettierrc.json": true,
+		".babelrc":         true,
+		".babelrc.js":      true,
+		".babelrc.json":    true,
+		".npmrc":           true,
+	}
+)
+
 func shouldSkip(name string) bool {
-	skipDirs := []string{
-		".git", ".github", ".vscode", ".idea", "node_modules",
-		".DS_Store", "Thumbs.db", ".env", ".env.local",
-		"vendor", "target", "build", "dist", "__pycache__",
-		".pytest_cache", ".coverage", "coverage", ".nyc_output",
+	// O(1) lookup for exact matches
+	if skipSet[name] {
+		return true
 	}
 
-	for _, skip := range skipDirs {
-		if name == skip {
-			return true
-		}
-	}
-
-	// Skip hidden files that start with . (except .gitignore, .gitkeep, etc.)
+	// Skip hidden files that start with . (except allowed ones)
 	if strings.HasPrefix(name, ".") {
-		allowedDotFiles := []string{
-			".gitignore", ".gitkeep", ".dockerignore", ".editorconfig",
-			".eslintrc", ".prettierrc", ".babelrc", ".npmrc",
+		// Check if it's an allowed dot file (exact match or prefix match)
+		if allowedDotFilesSet[name] {
+			return false
 		}
-		for _, allowed := range allowedDotFiles {
+
+		// Check for prefix matches for config files with extensions
+		for allowed := range allowedDotFilesSet {
 			if strings.HasPrefix(name, allowed) {
 				return false
 			}
 		}
+
 		return true
 	}
 

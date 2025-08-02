@@ -11,7 +11,15 @@
 
 ## Installation
 
-### Build from source
+### Build from source (using Make)
+
+```bash
+git clone https://github.com/neilsmahajan/project-tree-md.git
+cd project-tree-md
+make build
+```
+
+### Build from source (using Go directly)
 
 ```bash
 git clone https://github.com/neilsmahajan/project-tree-md.git
@@ -23,6 +31,12 @@ go build -o project-tree-md cmd/main.go
 
 ```bash
 go run cmd/main.go -path /path/to/your/project
+```
+
+### Install system-wide (optional)
+
+```bash
+make install  # Installs to /usr/local/bin
 ```
 
 ## Usage
@@ -38,6 +52,28 @@ go run cmd/main.go -path /path/to/your/project
 
 # Show help
 ./project-tree-md -help
+```
+
+### Make commands
+
+```bash
+# Build the project
+make build
+
+# Build and run on current directory
+make run
+
+# Clean build artifacts
+make clean
+
+# Run development tasks (format, vet, test, build)
+make dev
+
+# Build for multiple platforms
+make build-all
+
+# Show all available make targets
+make help
 ```
 
 ### Example output
