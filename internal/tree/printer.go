@@ -12,11 +12,25 @@ func PrintTree(path, indent string) error {
 		return err
 	}
 	for _, entry := range entries {
-		fmt.Printf("%s- %s\n", indent, entry.Name())
 		if entry.IsDir() {
-			if err := PrintTree(filepath.Join(path, entry.Name()), indent+"  "); err != nil {
-				return fmt.Errorf("error reading directory %s: %w", filepath.Join(path, entry.Name()), err)
+			switch entry.Name() {
+			case ".git", ".github", ".vscode":
+				// Skip these directories
+				continue
 			}
+
+			fmt.Println(indent + entry.Name() + "/")
+			subPath := filepath.Join(path, entry.Name())
+			if err := PrintTree(subPath, indent+"  "); err != nil {
+				return err
+			}
+		} else {
+			switch entry.Name() {
+			case ".DS_Store":
+				// Skip .DS_Store files
+				continue
+			}
+			fmt.Println(indent + entry.Name())
 		}
 	}
 	return nil
