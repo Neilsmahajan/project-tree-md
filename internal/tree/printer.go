@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 )
 
-func PrintTree(path, indent string) error {
-	entries, err := os.ReadDir(path)
+func PrintTree(currentPath, indent string) error {
+	entries, err := os.ReadDir(currentPath)
 	if err != nil {
 		return err
 	}
@@ -15,19 +15,16 @@ func PrintTree(path, indent string) error {
 		if entry.IsDir() {
 			switch entry.Name() {
 			case ".git", ".github", ".vscode":
-				// Skip these directories
 				continue
 			}
-
 			fmt.Println(indent + entry.Name() + "/")
-			subPath := filepath.Join(path, entry.Name())
-			if err := PrintTree(subPath, indent+"  "); err != nil {
+			subPath := filepath.Join(currentPath, entry.Name())
+			if err := PrintTree(subPath, indent+"-"); err != nil {
 				return err
 			}
 		} else {
 			switch entry.Name() {
 			case ".DS_Store":
-				// Skip .DS_Store files
 				continue
 			}
 			fmt.Println(indent + entry.Name())
