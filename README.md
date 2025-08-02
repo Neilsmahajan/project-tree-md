@@ -1,9 +1,80 @@
 # Project Tree Markdown
 
-`project-tree-md` is a simple CLI tool that prints a Markdown-formatted tree structure of a given project directory.
+`project-tree-md` is a simple CLI tool that generates a Markdown-formatted tree structure of any directory. Perfect for creating README documentation that shows your project structure.
+
+## Features
+
+- 🌳 **Clean markdown output** - Generates properly formatted tree structures using box-drawing characters
+- 📁 **Smart filtering** - Automatically skips common unwanted files and directories (.git, node_modules, .DS_Store, etc.)
+- 🔧 **Easy to use** - Simple command-line interface with path flag
+- 📋 **Copy-paste ready** - Output is wrapped in markdown code blocks, ready for your README
+
+## Installation
+
+### Build from source
+
+```bash
+git clone https://github.com/neilsmahajan/project-tree-md.git
+cd project-tree-md
+go build -o project-tree-md cmd/main.go
+```
+
+### Run directly with Go
+
+```bash
+go run cmd/main.go -path /path/to/your/project
+```
 
 ## Usage
 
+### Basic usage
+
 ```bash
-go run cmd/main.go --path=/path/to/your/project
+# Generate tree for current directory
+./project-tree-md
+
+# Generate tree for specific directory
+./project-tree-md -path /path/to/your/project
+
+# Show help
+./project-tree-md -help
 ```
+
+### Example output
+
+Running `./project-tree-md` on this project generates:
+
+```
+project-tree-md
+├── cmd/
+│   └── main.go
+├── internal/
+│   ├── cli/
+│   │   └── cli.go
+│   └── tree/
+│       └── printer.go
+├── .gitignore
+├── go.mod
+├── project-tree-md
+└── README.md
+```
+
+## What gets filtered out
+
+The tool automatically skips these common files and directories:
+
+- Version control: `.git`, `.github`
+- IDE/Editor: `.vscode`, `.idea`
+- Dependencies: `node_modules`, `vendor`
+- Build artifacts: `target`, `build`, `dist`, `__pycache__`
+- System files: `.DS_Store`, `Thumbs.db`
+- Environment files: `.env`, `.env.local`
+- Most hidden files (except important ones like `.gitignore`, `.dockerignore`, etc.)
+
+## Contributing
+
+Feel free to open issues or submit pull requests to improve the tool!
+
+## License
+
+MIT License
