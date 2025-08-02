@@ -3,17 +3,17 @@ package cli
 import (
 	"flag"
 	"fmt"
+	"path"
 
 	"github.com/neilsmahajan/project-tree-md/internal/tree"
 )
 
 func Run() error {
-	// Placeholder for CLI logic
-	fmt.Println("Running CLI...")
-	path := flag.String("path", ".", "Path to the directory to print")
+	currentPath := flag.String("path", ".", "Path to the directory to print")
 	flag.Parse()
-	fmt.Println("# Project Structure")
-	if err := tree.PrintTree(*path, ""); err != nil {
+	lastPath := path.Base(*currentPath)
+	fmt.Println(lastPath + "\\")
+	if err := tree.PrintTree(*currentPath, "|"); err != nil {
 		return fmt.Errorf("error printing tree: %w", err)
 	}
 	return nil
