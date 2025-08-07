@@ -91,7 +91,8 @@ project-tree-md
 │       └── printer.go
 ├── .gitignore
 ├── go.mod
-├── project-tree-md
+├── LICENSE
+├── Makefile
 └── README.md
 ```
 
@@ -106,6 +107,13 @@ The tool automatically skips these common files and directories:
 - System files: `.DS_Store`, `Thumbs.db`
 - Environment files: `.env`, `.env.local`
 - Most hidden files (except important ones like `.gitignore`, `.dockerignore`, etc.)
+
+## Author
+
+**Neil Mahajan**
+
+- Email: [neilsmahajan@gmail.com](mailto:neilsmahajan@gmail.com)
+- Portfolio: [https://neilsmahajan.com/](https://neilsmahajan.com/)
 
 ## Contributing
 
