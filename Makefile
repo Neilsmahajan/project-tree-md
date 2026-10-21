@@ -2,8 +2,11 @@
 
 # Variables
 BINARY_NAME=project-tree-md
-MAIN_PATH=cmd/main.go
+MAIN_PATH=.
 BUILD_DIR=.
+VERSION=$(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
+LDFLAGS=-ldflags "-X github.com/neilsmahajan/project-tree-md/internal/cli.version=$(VERSION)"
+STATICCHECK=honnef.co/go/tools/cmd/staticcheck@v0.8.2
 
 # Default target
 .PHONY: all
@@ -13,7 +16,7 @@ all: build
 .PHONY: build
 build:
 	@echo "Building $(BINARY_NAME)..."
-	go build -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_PATH)
+	go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_PATH)
 	@echo "Build complete: $(BINARY_NAME)"
 
 # Clean build artifacts
@@ -47,6 +50,17 @@ vet:
 	@echo "Vetting code..."
 	go vet ./...
 
+# Lint code
+.PHONY: lint
+lint:
+	@echo "Linting code..."
+	go run $(STATICCHECK) ./...
+
+# Record the README demo (needs vhs)
+.PHONY: demo
+demo:
+	vhs docs/demo.tape
+
 # Install dependencies
 .PHONY: deps
 deps:
@@ -58,10 +72,10 @@ deps:
 .PHONY: build-all
 build-all:
 	@echo "Building for multiple platforms..."
-	GOOS=linux GOARCH=amd64 go build -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 $(MAIN_PATH)
-	GOOS=darwin GOARCH=amd64 go build -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-amd64 $(MAIN_PATH)
-	GOOS=darwin GOARCH=arm64 go build -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-arm64 $(MAIN_PATH)
-	GOOS=windows GOARCH=amd64 go build -o $(BUILD_DIR)/$(BINARY_NAME)-windows-amd64.exe $(MAIN_PATH)
+	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 $(MAIN_PATH)
+	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-amd64 $(MAIN_PATH)
+	GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-arm64 $(MAIN_PATH)
+	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-windows-amd64.exe $(MAIN_PATH)
 	@echo "Multi-platform build complete"
 
 # Install to system (requires sudo on some systems)
@@ -80,7 +94,7 @@ uninstall:
 
 # Development target - format, vet, test, and build
 .PHONY: dev
-dev: fmt vet test build
+dev: fmt vet lint test build
 
 # Help target
 .PHONY: help
@@ -92,9 +106,11 @@ help:
 	@echo "  test       - Run tests"
 	@echo "  fmt        - Format code"
 	@echo "  vet        - Vet code"
+	@echo "  lint       - Run staticcheck"
+	@echo "  demo       - Re-record docs/demo.gif with vhs"
 	@echo "  deps       - Install dependencies"
 	@echo "  build-all  - Build for multiple platforms"
 	@echo "  install    - Install binary to /usr/local/bin"
 	@echo "  uninstall  - Remove binary from /usr/local/bin"
-	@echo "  dev        - Run fmt, vet, test, and build"
+	@echo "  dev        - Run fmt, vet, lint, test, and build"
 	@echo "  help       - Show this help message"

@@ -1,124 +1,129 @@
-# Project Tree Markdown
+# project-tree-md
 
-`project-tree-md` is a simple CLI tool that generates a Markdown-formatted tree structure of any directory. Perfect for creating README documentation that shows your project structure.
+Draw a project's folder structure as a Markdown tree, ready to paste into a
+README, a design doc or a pull request. It leaves out the noise (`.git`,
+`node_modules`, build output, `.env` files) so the tree shows the code.
 
-## Features
+![project-tree-md drawing the tree of a sample project](docs/demo.gif)
 
-- 🌳 **Clean markdown output** - Generates properly formatted tree structures using box-drawing characters
-- 📁 **Smart filtering** - Automatically skips common unwanted files and directories (.git, node_modules, .DS_Store, etc.)
-- 🔧 **Easy to use** - Simple command-line interface with path flag
-- 📋 **Copy-paste ready** - Output is wrapped in markdown code blocks, ready for your README
+<sub>The project in the demo is made up (`docs/demo-project.sh` creates it).</sub>
 
-## Installation
+```
+acme-api
+├── cmd/
+│   └── server/
+│       └── main.go
+├── internal/
+│   ├── handlers/
+│   │   ├── users.go
+│   │   └── users_test.go
+│   └── store/
+│       └── postgres.go
+├── web/
+│   ├── src/
+│   │   ├── App.tsx
+│   │   └── main.tsx
+│   └── package.json
+├── .gitignore
+├── Dockerfile
+├── go.mod
+└── README.md
+```
 
-### Build from source (using Make)
+## Install
 
-```bash
-git clone https://github.com/neilsmahajan/project-tree-md.git
+With Go 1.24 or later:
+
+```sh
+go install github.com/neilsmahajan/project-tree-md@latest
+```
+
+The module path is lowercase; use it exactly as written. The older path,
+`github.com/neilsmahajan/project-tree-md/cmd@latest`, still works but installs
+the command as `cmd`.
+
+Or build from a clone:
+
+```sh
+git clone https://github.com/Neilsmahajan/project-tree-md.git
 cd project-tree-md
-make build
-```
-
-### Build from source (using Go directly)
-
-```bash
-git clone https://github.com/neilsmahajan/project-tree-md.git
-cd project-tree-md
-go build -o project-tree-md cmd/main.go
-```
-
-### Run directly with Go
-
-```bash
-go run cmd/main.go -path /path/to/your/project
-```
-
-### Install system-wide (optional)
-
-```bash
-make install  # Installs to /usr/local/bin
+make build      # ./project-tree-md
+make install    # copies it to /usr/local/bin
 ```
 
 ## Usage
 
-### Basic usage
-
-```bash
-# Generate tree for current directory
-./project-tree-md
-
-# Generate tree for specific directory
-./project-tree-md -path /path/to/your/project
-
-# Show help
-./project-tree-md -help
+```sh
+project-tree-md                          # the current directory
+project-tree-md ./my-project             # another directory
+project-tree-md --depth 2                # only two levels deep
+project-tree-md --exclude '*.log' --exclude testdata
+project-tree-md --no-fence               # without the surrounding ``` lines
+project-tree-md --all --exclude .git     # include .github, dot files and the rest
+project-tree-md --json                   # the same tree as JSON
+project-tree-md --help
 ```
 
-### Make commands
+The output is wrapped in a ```` ``` ```` code block, so you can pipe it straight
+into a file or your clipboard:
 
-```bash
-# Build the project
-make build
-
-# Build and run on current directory
-make run
-
-# Clean build artifacts
-make clean
-
-# Run development tasks (format, vet, test, build)
-make dev
-
-# Build for multiple platforms
-make build-all
-
-# Show all available make targets
-make help
+```sh
+project-tree-md | pbcopy                 # macOS
+project-tree-md >> README.md
 ```
 
-### Example output
+Directories come first, then files, each sorted by name ignoring case.
+Directories end in `/`. Symlinks inside the tree are shown as `name -> target`
+and are not followed (if the directory you pass is itself a symlink, it is). `--exclude` takes a glob that's matched against each file or folder
+name, not the whole path.
 
-Running `./project-tree-md` on this project generates:
+## What gets left out
 
-```
-project-tree-md
-├── cmd/
-│   └── main.go
-├── internal/
-│   ├── cli/
-│   │   └── cli.go
-│   └── tree/
-│       └── printer.go
-├── .gitignore
-├── go.mod
-├── LICENSE
-├── Makefile
-└── README.md
-```
+Unless you pass `--all`:
 
-## What gets filtered out
-
-The tool automatically skips these common files and directories:
-
-- Version control: `.git`, `.github`
-- IDE/Editor: `.vscode`, `.idea`
+- Version control and editors: `.git`, `.github`, `.vscode`, `.idea`
 - Dependencies: `node_modules`, `vendor`
-- Build artifacts: `target`, `build`, `dist`, `__pycache__`
+- Build and test output: `target`, `build`, `dist`, `coverage`, `__pycache__`,
+  `.pytest_cache`, `.coverage`, `.nyc_output`
 - System files: `.DS_Store`, `Thumbs.db`
 - Environment files: `.env`, `.env.local`
-- Most hidden files (except important ones like `.gitignore`, `.dockerignore`, etc.)
+- Every other name starting with a dot, except `.gitignore`, `.gitkeep`,
+  `.dockerignore`, `.editorconfig`, `.npmrc` and `.eslintrc*`, `.prettierrc*`,
+  `.babelrc*`
 
-## Author
+## Works with coding agents
 
-**Neil Mahajan**
+project-tree-md is also easy for scripts and coding agents to call, for
+example to describe a repository's layout in docs they write:
 
-- Email: [neilsmahajan@gmail.com](mailto:neilsmahajan@gmail.com)
-- Portfolio: [https://neilsmahajan.com/](https://neilsmahajan.com/)
+- `--json` prints the tree in a [versioned schema](schema/project-tree-md.v1.schema.json)
+  (`schemaVersion: 1`), with the same filtering as the Markdown, plus counts
+  and any folders it couldn't read. Fields can be added within version 1;
+  removing or changing one bumps it.
+- The tree goes to stdout; errors and warnings go to stderr.
+- Exit codes: `0` the tree was printed, `1` the directory doesn't exist or
+  can't be read, or a folder or symlink inside it couldn't be read (the rest
+  of the tree is still printed, and the entry is marked `(unreadable)`), `2`
+  bad flags or arguments.
+- It never prompts and has no interactive mode, so it behaves the same in a
+  terminal, a pipe or CI.
+- [`SKILL.md`](SKILL.md) tells an agent when and how to use it. Copy it to
+  `~/.claude/skills/project-tree-md/SKILL.md` (Claude Code) or
+  `~/.agents/skills/project-tree-md/SKILL.md` (Codex and others).
 
-## Contributing
+## Development
 
-Feel free to open issues or submit pull requests to improve the tool!
+```sh
+make test       # go test ./...
+make vet
+make lint       # staticcheck
+make dev        # fmt, vet, lint, test and build
+make demo       # re-records docs/demo.gif with vhs
+```
+
+CI runs the tests on Linux, macOS and Windows, plus `go vet`, staticcheck and
+gitleaks. Issues and pull requests are welcome.
 
 ## License
 
-MIT License
+[MIT](LICENSE)

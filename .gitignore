@@ -1,6 +1,3 @@
 .DS_Store
-project-tree-md
-project-tree-md-darwin-amd64
-project-tree-md-darwin-arm64
-project-tree-md-linux-amd64
-project-tree-md-windows-amd64.exe
+/project-tree-md
+/project-tree-md-*

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Neilsmahajan/project-tree-md/blob/master/schema/project-tree-md.v1.schema.json",
+  "title": "project-tree-md --json output",
+  "description": "One directory tree, after the same filtering as the Markdown output. Fields may be added within schema version 1; removing or changing one bumps the version.",
+  "type": "object",
+  "required": ["schemaVersion", "path", "root", "counts", "problems"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "path": {
+      "type": "string",
+      "description": "Absolute path of the directory that was read, as given (a symlink given here is followed, and root is its target directory under the link's name)."
+    },
+    "root": { "$ref": "#/$defs/node" },
+    "counts": {
+      "type": "object",
+      "description": "Entries listed below the root, not counting the root itself.",
+      "required": ["directories", "files"],
+      "properties": {
+        "directories": { "type": "integer", "minimum": 0 },
+        "files": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Everything that isn't a directory: files, symlinks and other entries."
+        }
+      }
+    },
+    "problems": {
+      "type": "array",
+      "description": "Directories below the root, or symlink targets, that couldn't be read. Not empty means the exit code is 1.",
+      "items": {
+        "type": "object",
+        "required": ["path", "message"],
+        "properties": {
+          "path": { "type": "string", "description": "Relative to the root, with forward slashes." },
+          "message": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "node": {
+      "type": "object",
+      "required": ["name", "type"],
+      "properties": {
+        "name": { "type": "string" },
+        "type": { "enum": ["directory", "file", "symlink", "other"] },
+        "target": {
+          "type": "string",
+          "description": "Symlinks only: the link's target as stored. Symlinks inside the tree are not followed."
+        },
+        "children": {
+          "type": "array",
+          "description": "Directories only, sorted directories first, then by name ignoring case. Absent when the directory is truncated or unreadable.",
+          "items": { "$ref": "#/$defs/node" }
+        },
+        "truncated": {
+          "type": "boolean",
+          "description": "true when --depth stopped before this directory's contents. They were not read."
+        },
+        "error": {
+          "type": "string",
+          "description": "Set when this directory, or this symlink's target, couldn't be read."
+        }
+      }
+    }
+  }
+}
